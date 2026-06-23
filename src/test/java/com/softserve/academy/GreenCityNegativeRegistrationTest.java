@@ -14,13 +14,23 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import java.time.Duration;
+
 
 class GreenCityNegativeRegistrationTest {
     private static WebDriver driver;
+    private static WebDriverWait wait;
+    private static JavascriptExecutor js;
+
 
     @BeforeAll
     static void setUp() {
         ChromeOptions options = new ChromeOptions();
+
+
 
         options.addArguments("--lang=en-GB");
         options.setExperimentalOption("prefs", java.util.Map.of("intl.accept_languages", "en-GB,en"));
@@ -37,16 +47,23 @@ class GreenCityNegativeRegistrationTest {
         if (System.getenv("GITHUB_ACTIONS") == null) {
             driver.manage().window().maximize();
         }
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        js = (JavascriptExecutor) driver;
     }
+
+
 
     @BeforeEach
     void openRegistrationForm() {
         driver.manage().deleteAllCookies();
         driver.navigate().to("https://www.greencity.cx.ua/#/greenCity");
-        sleep(5000);
-        driver.findElement(By.cssSelector(".header_sign-up-btn > span")).click();
-        sleep(2000);
+
+        WebElement signUpBtn = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".header_sign-up-btn > span")));
+        signUpBtn.click();
+
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
     }
+
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("invalidEmailValues")
@@ -59,13 +76,14 @@ class GreenCityNegativeRegistrationTest {
         assertSignUpButtonDisabled();
     }
 
+
     @Test
     @DisplayName("All fields empty → required errors shown")
     void shouldShowErrorsForAllEmptyFields() {
-        driver.findElement(By.id("email")).click();
-        driver.findElement(By.id("firstName")).click();
-        driver.findElement(By.id("password")).click();
-        driver.findElement(By.id("repeatPassword")).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email"))).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("firstName"))).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password"))).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("repeatPassword"))).click();
         blur();
 
         assertEmailErrorVisible();
@@ -73,18 +91,20 @@ class GreenCityNegativeRegistrationTest {
         assertSignUpButtonDisabled();
     }
 
+
     @Test
     @DisplayName("Empty username → username required")
     void shouldShowErrorForEmptyUsername() {
         typeEmail("valid@email.com");
         typePassword("ValidPass123!");
         typeConfirm("ValidPass123!");
-        driver.findElement(By.id("firstName")).click();
+        wait.until(ExpectedConditions.elementToBeClickable(By.id("firstName"))).click();
         blur();
 
         assertUsernameErrorVisible();
         assertSignUpButtonDisabled();
     }
+
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("invalidPasswords")
@@ -93,21 +113,18 @@ class GreenCityNegativeRegistrationTest {
         fillValidRegistrationDataWithoutConfirm();
         typePassword(password);
         blur();
-        sleep(1000);
 
         assertPasswordErrorVisible();
         assertSignUpButtonDisabled();
-    }
-
-    @ParameterizedTest(name = "{0}")
+    }@ParameterizedTest(name = "{0}")
     @MethodSource("invalidConfirmPasswordActions")
     @DisplayName("Invalid confirm password scenarios -> confirm error")
     void shouldShowErrorForInvalidConfirmPassword(
-            String scenario,
-            boolean shouldTypeConfirmPassword,
-            String confirmPasswordValue,
-            String expectedMessagePart
-    ) {
+                    String scenario,
+                    boolean shouldTypeConfirmPassword,
+                    String confirmPasswordValue,
+                    String expectedMessagePart
+            ) {
         fillValidRegistrationDataWithoutConfirm();
         typePassword("ValidPass123!");
         applyConfirmPasswordState(shouldTypeConfirmPassword, confirmPasswordValue);
@@ -138,28 +155,34 @@ class GreenCityNegativeRegistrationTest {
         );
     }
 
+
     private void typeEmail(String value) {
-        WebElement field = driver.findElement(By.id("email"));
-        field.clear();
-        field.sendKeys(value);
+        WebElement field = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
+        field.click();
+        js.executeScript("arguments[0].value = arguments[1];", field, value);
+        js.executeScript("arguments[0].dispatchEvent(new Event('input'));", field);
     }
 
     private void typeUsername(String value) {
-        WebElement field = driver.findElement(By.id("firstName"));
-        field.clear();
-        field.sendKeys(value);
+        WebElement field = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("firstName")));
+        field.click();
+        js.executeScript("arguments[0].value = arguments[1];", field, value);
+        js.executeScript("arguments[0].dispatchEvent(new Event('input'));", field);
     }
 
+
     private void typePassword(String value) {
-        WebElement field = driver.findElement(By.id("password"));
-        field.clear();
-        field.sendKeys(value);
+        WebElement field = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password")));
+        field.click();
+        js.executeScript("arguments[0].value = arguments[1];", field, value);
+        js.executeScript("arguments[0].dispatchEvent(new Event('input'));", field);
     }
 
     private void typeConfirm(String value) {
-        WebElement field = driver.findElement(By.id("repeatPassword"));
-        field.clear();
-        field.sendKeys(value);
+        WebElement field = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("repeatPassword")));
+        field.click();
+        js.executeScript("arguments[0].value = arguments[1];", field, value);
+        js.executeScript("arguments[0].dispatchEvent(new Event('input'));", field);
     }
 
     private void fillValidRegistrationDataWithoutConfirm() {
@@ -172,36 +195,37 @@ class GreenCityNegativeRegistrationTest {
             typeConfirm(confirmPasswordValue);
             return;
         }
-        driver.findElement(By.id("repeatPassword")).click();
+        wait.until(ExpectedConditions.elementToBeClickable(By.id("repeatPassword"))).click();
     }
 
+
     private void blur() {
-        driver.findElement(By.id("firstName")).click();
-        sleep(500);
+        js.executeScript("if (document.activeElement) { document.activeElement.blur(); }");
     }
 
     private void assertEmailErrorVisible() {
-        WebElement error = driver.findElement(By.id("email-err-msg"));
+        WebElement error = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email-err-msg")));
         assertTrue(error.isDisplayed(), "Email error message should be visible");
     }
 
-    private void assertUsernameErrorVisible() {
-        WebElement error = driver.findElement(By.xpath("//input[@id='firstName']/following-sibling::div"));
-        assertTrue(error.isDisplayed(), "Username error message should be visible");
-    }
 
-    private void assertPasswordErrorVisible() {
-        WebElement error = driver.findElement(By.cssSelector("p.password-not-valid"));
+    private void assertUsernameErrorVisible() {
+        WebElement error = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@id='firstName']/following-sibling::div")));
+        assertTrue(error.isDisplayed(), "Username error message should be visible");
+    }private void assertPasswordErrorVisible() {
+        WebElement error = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("p.password-not-valid")));
         assertTrue(error.isDisplayed(), "Password validation rules should be visible");
     }
 
+
     private void assertConfirmPasswordErrorVisible() {
-        WebElement error = driver.findElement(By.id("confirm-err-msg"));
+        WebElement error = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("confirm-err-msg")));
         assertTrue(error.isDisplayed(), "Confirm password error message should be visible");
     }
 
+
     private void assertConfirmPasswordErrorContains(String expectedMessagePart) {
-        WebElement error = driver.findElement(By.id("confirm-err-msg"));
+        WebElement error = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("confirm-err-msg")));
         String actualMessage = error.getText().toLowerCase();
         assertTrue(
                 actualMessage.contains(expectedMessagePart.toLowerCase()),
@@ -209,18 +233,14 @@ class GreenCityNegativeRegistrationTest {
         );
     }
 
+
     private void assertSignUpButtonDisabled() {
-        WebElement btn = driver.findElement(By.cssSelector("button[type='submit'].greenStyle"));
+        WebElement btn = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("button[type='submit'].greenStyle")));
         assertFalse(btn.isEnabled(), "The 'Sign Up' button should be disabled");
     }
 
-    private void sleep(long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
+
+
 
     @AfterAll
     static void tearDown() {
