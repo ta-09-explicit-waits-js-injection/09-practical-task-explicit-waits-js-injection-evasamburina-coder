@@ -19,7 +19,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import java.time.Duration;
 
-
 class GreenCityNegativeRegistrationTest {
     private static WebDriver driver;
     private static WebDriverWait wait;
@@ -160,14 +159,14 @@ class GreenCityNegativeRegistrationTest {
         WebElement field = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
         field.click();
         js.executeScript("arguments[0].value = arguments[1];", field, value);
-        js.executeScript("arguments[0].dispatchEvent(new Event('input'));", field);
+
     }
 
     private void typeUsername(String value) {
         WebElement field = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("firstName")));
         field.click();
         js.executeScript("arguments[0].value = arguments[1];", field, value);
-        js.executeScript("arguments[0].dispatchEvent(new Event('input'));", field);
+
     }
 
 
@@ -175,14 +174,14 @@ class GreenCityNegativeRegistrationTest {
         WebElement field = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password")));
         field.click();
         js.executeScript("arguments[0].value = arguments[1];", field, value);
-        js.executeScript("arguments[0].dispatchEvent(new Event('input'));", field);
+
     }
 
     private void typeConfirm(String value) {
         WebElement field = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("repeatPassword")));
         field.click();
         js.executeScript("arguments[0].value = arguments[1];", field, value);
-        js.executeScript("arguments[0].dispatchEvent(new Event('input'));", field);
+
     }
 
     private void fillValidRegistrationDataWithoutConfirm() {
@@ -212,7 +211,9 @@ class GreenCityNegativeRegistrationTest {
     private void assertUsernameErrorVisible() {
         WebElement error = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@id='firstName']/following-sibling::div")));
         assertTrue(error.isDisplayed(), "Username error message should be visible");
-    }private void assertPasswordErrorVisible() {
+    }
+
+    private void assertPasswordErrorVisible() {
         WebElement error = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("p.password-not-valid")));
         assertTrue(error.isDisplayed(), "Password validation rules should be visible");
     }
@@ -232,6 +233,7 @@ class GreenCityNegativeRegistrationTest {
                 "Confirm password error '" + actualMessage + "' should contain '" + expectedMessagePart + "'"
         );
     }
+
 
 
     private void assertSignUpButtonDisabled() {
